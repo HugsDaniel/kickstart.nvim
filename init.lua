@@ -64,6 +64,14 @@ vim.opt.rtp:prepend(lazypath)
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
+  -- Null-ls to manage linter (eslint, rubocop...) --
+  'jose-elias-alvarez/null-ls.nvim',
+
+  -- Auto pairs --
+  'm4xshen/autoclose.nvim',
+
+  -- Copilot --
+  'github/copilot.vim',
 
   -- Git related plugins
   'tpope/vim-fugitive',
@@ -74,6 +82,43 @@ require('lazy').setup({
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
+
+  -- NvimTree for file explorer --
+  {
+    "nvim-tree/nvim-tree.lua",
+    version = "*",
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
+    config = function()
+      require("nvim-tree").setup {
+        auto_reload_on_write = true,
+        update_focused_file = {
+          enable = true,
+          update_root = false,
+          ignore_list = {},
+        },
+      }
+    end,
+  },
+
+  -- Barbar for nicer tabs --
+  {
+    'romgrk/barbar.nvim',
+    dependencies = {
+      'lewis6991/gitsigns.nvim',     -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
+    init = function() vim.g.barbar_auto_setup = false end,
+    opts = {
+      -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
+      -- animation = true,
+      -- insert_at_start = true,
+      -- …etc.
+    },
+    version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
+
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -84,7 +129,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -108,7 +153,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',          opts = {} },
   {
     -- Adds git releated signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -122,7 +167,8 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '<leader>gp', require('gitsigns').prev_hunk, { buffer = bufnr, desc = '[G]o to [P]revious Hunk' })
+        vim.keymap.set('n', '<leader>gp', require('gitsigns').prev_hunk,
+          { buffer = bufnr, desc = '[G]o to [P]revious Hunk' })
         vim.keymap.set('n', '<leader>gn', require('gitsigns').next_hunk, { buffer = bufnr, desc = '[G]o to [N]ext Hunk' })
         vim.keymap.set('n', '<leader>ph', require('gitsigns').preview_hunk, { buffer = bufnr, desc = '[P]review [H]unk' })
       end,
@@ -149,6 +195,15 @@ require('lazy').setup({
         component_separators = '|',
         section_separators = '',
       },
+      sections = {
+        lualine_a = {
+          {
+            'filename',
+            file_status = true, -- displays file status (readonly status, modified status)
+            path = 1            -- 0 = just filename, 1 = relative path, 2 = absolute path
+          }
+        }
+      }
     },
   },
 
@@ -164,7 +219,7 @@ require('lazy').setup({
   },
 
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  { 'numToStr/Comment.nvim',         opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
   { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
@@ -210,10 +265,11 @@ require('lazy').setup({
 -- NOTE: You can change these options as you wish!
 
 -- Set highlight on search
-vim.o.hlsearch = false
+vim.o.hlsearch = true
 
--- Make line numbers default
+-- Make relative line numbers default
 vim.wo.number = true
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -247,6 +303,8 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+vim.g.netrw_winsize = 25
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -256,6 +314,21 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+
+-- Remap tab to switch between tabs (barbar) --
+vim.keymap.set('n', '<Tab>', vim.cmd.BufferNext, { desc = '[Tab] Next tab' })
+vim.keymap.set('n', '<S-Tab>', vim.cmd.BufferPrevious, { desc = '[Shift-Tab] Previous tab' })
+vim.keymap.set('n', '<leader>x', vim.cmd.BufferClose, { desc = '[Space-x] Close tab' })
+
+-- Open file explorer --
+vim.keymap.set('n', '<C-n>', vim.cmd.NvimTreeToggle, { desc = 'Toggle filetree' })
+vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Move from file to tree' })
+vim.keymap.set('n', '<C-j>', '<C-w>j')
+vim.keymap.set('n', '<C-k>', '<C-w>k')
+vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Move from tree to file' })
+
+-- Null-ls formatting --
+vim.keymap.set('n', '<leader>fo', vim.cmd.Format, { desc = '[FO]rmat file' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -275,7 +348,7 @@ require('telescope').setup {
     mappings = {
       i = {
         ['<C-u>'] = false,
-        ['<C-d>'] = false,
+        ['<C-d>'] = false
       },
     },
   },
@@ -295,7 +368,7 @@ vim.keymap.set('n', '<leader>/', function()
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
-vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
+vim.keymap.set('n', '<leader>ff', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
 vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
@@ -513,3 +586,31 @@ cmp.setup {
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Barbar setup --
+require 'barbar'.setup {
+  gitsigns = {
+    added = { enabled = true, icon = '+' },
+    changed = { enabled = true, icon = '~' },
+    deleted = { enabled = true, icon = '-' },
+  },
+  sidebar_filetypes = {
+    -- Use the default values: {event = 'BufWinLeave', text = nil}
+    NvimTree = true,
+  },
+  no_name_title = 'Meow',
+}
+
+-- Autoclose setup --
+require("autoclose").setup()
+
+-- Null-ls formatting tool setup --
+local null_ls = require("null-ls")
+
+null_ls.setup({
+  sources = {
+    null_ls.builtins.formatting.prettier.with({ extract_args = { "--no-semi", "--single-quote", "--jsx-single-quote" } }),
+    null_ls.builtins.diagnostics.eslint,
+    null_ls.builtins.completion.spell,
+  },
+})
