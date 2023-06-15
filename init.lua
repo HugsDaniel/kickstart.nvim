@@ -611,7 +611,11 @@ require 'barbar'.setup {
 }
 
 -- Autoclose setup --
-require("autoclose").setup()
+require("autoclose").setup({
+  options = {
+    disable_when_touch = true
+  }
+})
 
 -- Null-ls formatting tool setup --
 local null_ls = require("null-ls")
