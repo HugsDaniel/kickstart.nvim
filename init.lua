@@ -66,6 +66,8 @@ require('lazy').setup({
   -- NOTE: First, some plugins that don't require any configuration
   -- Null-ls to manage linter (eslint, rubocop...) --
   'jose-elias-alvarez/null-ls.nvim',
+  'tpope/vim-fugitive',
+  'APZelos/blamer.nvim',
 
   -- Auto pairs --
   'm4xshen/autoclose.nvim',
@@ -550,16 +552,16 @@ cmp.setup {
     end,
   },
   mapping = cmp.mapping.preset.insert {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
+    -- ['<C-n>'] = cmp.mapping.select_next_item(),
+    -- ['<C-b>'] = cmp.mapping.select_prev_item(),
     ['<C-d>'] = cmp.mapping.scroll_docs(-4),
     ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete {},
+    -- ['<C-Space>'] = cmp.mapping.complete {},
     ['<CR>'] = cmp.mapping.confirm {
       behavior = cmp.ConfirmBehavior.Replace,
       select = true,
     },
-    ['<Tab>'] = cmp.mapping(function(fallback)
+    ['<C-n>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
       elseif luasnip.expand_or_locally_jumpable() then
@@ -568,7 +570,7 @@ cmp.setup {
         fallback()
       end
     end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
+    ['<C-b>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_prev_item()
       elseif luasnip.locally_jumpable(-1) then
@@ -583,6 +585,13 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
+-- Copilot --
+vim.keymap.set('i', '<C-;>', '<Plug>(copilot-next)')
+vim.keymap.set('i', '<C-,>', '<Plug>(copilot-previous)')
+
+-- GitBlamer setup --
+vim.g.blamer_enabled = 1
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
